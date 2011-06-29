@@ -18,19 +18,19 @@ var jax = new skinnyJAX({ hosts: ['http://domain.com/'],
 *Submit A Request*
 
 <pre>
-jax.req({ endpoint: 'v1/something',
+jax.req({ endpoint: 'v1/something',				// endpoint path
 	  method: 'get',					// http method
 	  params: { param1: value1, param2: value2 },		// [optional] request parameters
 	  timeout: 1500,					// [optional] timeout should be boolean or a time in ms
 	  retries: 2,						// [optional] retries can be boolean or a number
-	  success: function(response) {				// [optional] success callback
+	  success: function(response) {				// success callback
 		// success callback
 	  },
-	  time_out: function(response) {			// [optional] success callback
-		// success callback
+	  time_out: function(response) {			// [optional] time_out callback
+		// time out callback
 	  },
 	  error: function(response) {				// [optional] error callback
-		// success callback
+		// error callback
 	  }
 	});
 </pre>
@@ -39,12 +39,13 @@ jax.req({ endpoint: 'v1/something',
 
 <pre>
 response = {
-	uri: 'http://domain.com/v1/something?param1...',	// complete request URI
+	attempt: 1,						// number of retries
+	data: {},						// if request is successful (null if not successful)
+	http_code: 200,						// http status code
 	method: 'get',						// request method
 	time: 232,						// response time
-	http_code: 200,						// http status code
 	timed_out: false,					// boolean
-	data: {}						// if request is successful
+	uri: 'http://domain.com/v1/something?param1...',	// complete request URI
 }
 </pre>
 

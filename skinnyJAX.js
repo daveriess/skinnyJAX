@@ -1,7 +1,7 @@
 /* 
- * SkinnyJAX - simple XHR wrapper
+ * SkinnyJAX - an XHR wrapper with failover
  * By Dave Riess http://daveriess.me
- * MIT Licensed.
+ * MIT Licensed
  */
 
 (function() { 
@@ -11,7 +11,7 @@
 
 		// skinnyJAX initialization
 		this.init = function(args) {
-			// ensure resources are present
+			// ensure hosts are present
 			if (!(args.resources instanceof Array)) return false;
 	
 			// initialize resource pool
@@ -139,7 +139,10 @@
 
 			// the response object will ultimately contain these key value pairs: uri, method, time, http_code, timed_out, data
 			// it is what gets passed up to the callbacks you define in your skinnyJAX.req
-			this.response = typeof(attempt) === 'number' ? {attempt: attempt} : {attempt : 1};			
+			this.response = {};
+			this.response.data = null;
+			this.response.attempt = typeof(attempt) === 'number' ? attempt : 1;
+			this.response.timed_out = false;
 	
 			this.xhr.onreadystatechange = function() {
 				if (this.readyState == 1) {
