@@ -7,14 +7,14 @@ I wrote skinnyJAX while working on "Tapl.io":http://tapl.io - take it for a spin
 h1. Simple Usage
 
 *Setup Resource*
-Initialize skinnyJAX with target host. If your app call to several different hosts you should init a unique skinnyJAX object for each one.
+Initialize skinnyJAX with target host. If your app calls to several different hosts you should init a unique skinnyJAX object for each one.
 
 <pre>
 var jax = new skinnyJAX('http://domain.com/');
 </pre>
 
 *Submit A Request*
-A complete listing of request options and callbacks is the Advanced Usage section below.
+A complete listing of request config options and callbacks is in the Advanced Usage section below.
 
 <pre>
 jax.req({ endpoint: 'v1/something.json',			// endpoint path
@@ -25,8 +25,8 @@ jax.req({ endpoint: 'v1/something.json',			// endpoint path
 	});
 </pre>
 
-*response object attributes:*
-this object is the argument that is passed to the request callbacks
+*Response Object Attributes:*
+This object is passed to the request callbacks
 
 <pre>
 response = {
@@ -99,4 +99,4 @@ h1. TODO
 
 - compatibility with non-JSON requests (interpret MIME types)
 - obvious headers should be applied
-- configurable random/sequential failover
+- configurable disable/random/sequential failover
