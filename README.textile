@@ -17,21 +17,17 @@ var jax = new skinnyJAX('http://domain.com/');
 
 <pre>
 jax.req({ endpoint: 'v1/something.json',			// endpoint path
-	  method: 'get',					// http method
 	  params: { param1: value1, param2: value2 },		// [optional] request parameters
 	  success: function(response) {				// success callback
 		// success callback
-	  },
-	  time_out: function(response) {			// [time out callback]
-		// time out callback
-	  },
-	  error: function(response) {				// [error callback]
-		// error callback
 	  }
 	});
 </pre>
 
+Look at Advanced usage for a complete listing of request options and callbacks
+
 *response object attributes:*
+this object is the argument that is passed to the request callbacks
 
 <pre>
 response = {
@@ -45,12 +41,13 @@ response = {
 }
 </pre>
 
-*Alternative Resource Init*
-specify any custom headers
+h1. Other Resource Init Options
 
 <pre>
 var jax = new skinnyJAX({ host: 'http://domain.com/',
-			  headers: { 'Content-Type': 'application/json'}
+			  host_sleep: 25000,					// for use with failover - see below
+			  default_timeout: 1200,				// default request timeout
+			  headers: { 'Content-Type': 'application/json'}	// default request headers
 			});
 </pre>
 
@@ -61,16 +58,14 @@ To 'enable' failover, initialize skinnyJAX with multiple target hosts (redundant
 Note: 'hosts' is plural for this setup
 
 <pre>
-var jax = new skinnyJAX({ hosts: ['http://srv1.domain.com/', 'http://srv2.domain.com/', 'http://srv3.domain.com/'],
-			  headers: { 'Content-Type': 'application/json'}
-			});
+var jax = new skinnyJAX({ hosts: ['http://srv1.domain.com/', 'http://srv2.domain.com/', 'http://srv3.domain.com/'] });
 </pre>
 
 *Submit A Request*
 
 <pre>
 jax.req({ endpoint: 'v1/something',				// endpoint path
-	  method: 'get',					// http method
+	  method: 'get',					// [optional] http method - uses GET if not defined
 	  params: { param1: value1, param2: value2 },		// [optional] request parameters
 	  timeout: 1500,					// [optional] timeout can be boolean or a time in ms
 	  retries: 2,						// [optional] retries can be boolean or a number
@@ -86,10 +81,10 @@ jax.req({ endpoint: 'v1/something',				// endpoint path
 	});
 </pre>
 
-Now if a request times out or errors out (http_code !200) skinnyJAX will temporarily disable the offending host and will failover to a new one. The new host will be randomly selected from the remaining pool of active hosts. Some things to note:
+Now if a request times out or errors out skinnyJAX will disable the offending host for [host_sleep] milliseconds and will failover to a new one. The default value for host_sleep is 15000. The new host will be randomly selected from the remaining pool of active hosts. Some things to note:
 
 1) request will be retried as configured before failover
-2) hosts will be re-enabled 15 seconds after causing a failover
+2) hosts will be re-enabled 15 seconds (default host_sleep) after causing a failover
 3) if all hosts in pool are disabled, request will exit false
 
 h1. Warnings
@@ -102,9 +97,6 @@ only requests that respond 200 trigger the success callback
 
 h1. TODO
 
-- simple init for single host config
 - obvious headers should be applied
-- assume GET method
-- should not assume response is JSON
-- host sleep should be configurable
-- random failover should be configurable
+- compatibility with non-JSON requests (interpret MIME types)
+- configurable random/sequential failover

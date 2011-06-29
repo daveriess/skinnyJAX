@@ -6,16 +6,14 @@
 
 (function() { 
 	skinnyJAX = function(args) {
-		// host sleep is the length of time (ms) a host is inactive after a failover
-		this.default_timeout = 1500, this.default_retry_max = 2, this.live_host = null, this.host_pool = null, this.host_sleep = 15000, this.headers = null;
-
 		// skinnyJAX initialization
 		this.init = function(args) {
-			// sanity check hosts init
-			if (typeof(args) === 'string' || (typeof(args) === 'object' && typeof(args.host) === 'string')) args = { hosts: typeof(args) === 'string' ? [args] : [args.host] };
-			if (!(args.hosts instanceof Array) || args.hosts.length == 0) return false;
+			// format host(s) + sanity check
+			if (typeof(args) === 'string') args = {hosts: [args]};
+			else if (typeof(args) === 'object' && typeof(args.host) === 'string') args.hosts = [args.host];
+			if (!args.hosts.length) return false;
 	
-			// initialize host pool
+			// init host pool
 			this.host_pool = [];
 			for (var i = 0; i < args.hosts.length; i++) {
 				this.host_pool.push( { name: args.hosts[i], live: true } );	
@@ -23,9 +21,14 @@
 	
 			// init a host from pool
 			this.promote_host();
-
-			// copy in any headers
-			if (args.headers instanceof Object) this.headers = args.headers;
+			
+			// copy in other configs or set defaults
+			if (typeof(args) === 'object') {
+				this.headers = typeof(args.headers) === 'object' ? args.headers : {};
+				this.host_sleep = typeof(args.host_sleep) === 'number' ? args.host_sleep : 15000;
+				this.default_timeout = typeof(args.default_timeout) === 'number' ? args.default_timeout : 1500;
+				this.default_retry_max = typeof(args.default_retry_max) === 'number' ? args.default_retry_max : 2;
+			}
 		}
 
 		// request function
@@ -36,11 +39,11 @@
 
 			// instantiate skinnyREQ object
 			var xhr = new skinnyREQ(args.attempt);
-			xhr.open(args.method, this.buildURI(args.endpoint, args.params));
+			xhr.open(args.method || 'get', this.buildURI(args.endpoint, args.params));
 		
 			// wire up callbacks
 			xhr.success = function(response) { args.success(response); }
-			xhr.time_out = function(response) { args.time_out(response); }
+			xhr.time_out = function(response) { args.time_out(response); }														// time_out callback has underscore
 			xhr.error = function(response) { self.error(response, args); }														// run error callback through failover mechanism
 
 			// set http headers
@@ -49,8 +52,8 @@
 			}
 		
 			// set up request timeout
-			if (args.timeout) {
-				xhr.setTimeout(isNaN(args.timeout) ? this.default_timeout : args.timeout);
+			if (args.timeout != false) {
+				xhr.setTimeout(typeof(args.timeout) === 'number' ?  args.timeout : this.default_timeout);
 			}
 		
 			// send request
@@ -97,7 +100,7 @@
 			// if retries is defined, engage failover/retry mechanism
 			if (args.retries) {
 				// if retry count has not been exceeded, try again - otherwise pass to failover
-				var retry_max = isNaN(args.retries) ? this.default_retry_max : args.retries;
+				var retry_max = typeof(args.retries) === 'number' ? args.retries : this.default_retry_max;
 				response.attempt >= retry_max ? this.failover(response, args) : this.retry(response.attempt+1, args);
 			}
 			// if retries is not defined pass to appropriate callback
@@ -130,7 +133,8 @@
 
 	// skinnyREQ is an XHR wrapper that stores some extra request info
 	skinnyREQ = function(args) {
-		this.xhr = null, this.time_out_id = null, this.attempt = null, this.success = null, this.time_out = null, this.error = null, this.response = null;
+		// these callbacks are set externally
+		this.success = null, this.time_out = null, this.error = null;
 	
 		// initialize new skinnyREQ
 		this.init = function(attempt) {
@@ -150,7 +154,7 @@
 					self.response.time = (new Date()).getTime();
 				}
 				else if (this.readyState == 4) {
-					if (self.response.timed_out == false) clearTimeout(self.time_out_id);
+					if (self.response.timed_out == false) clearTimeout(self.timeout_id);
 					self.response.time = (new Date()).getTime() - self.response.time;
 					self.response.http_code = this.status;
 				}
@@ -183,7 +187,7 @@
 		this.setTimeout = function(delay) {
 			var self = this;
 			this.response.timed_out = false;
-			this.time_out_id = setTimeout( function() {
+			this.timeout_id = setTimeout( function() {
 				if (self.xhr.readyState < 4) {
 					self.response.timed_out = true;
 					self.xhr.abort();
