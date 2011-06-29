@@ -3,7 +3,6 @@
  * By Dave Riess http://daveriess.me
  * MIT Licensed
  */
-
 (function() { 
 	skinnyJAX = function(args) {
 		// skinnyJAX initialization
@@ -112,7 +111,6 @@
 	
 		// retry request
 		this.retry = function(attempt, args) {
-			console.info('host unavailable - retrying: '+this.live_host+' - '+attempt)
 			args.attempt = attempt;
 			this.req(args);
 		}
