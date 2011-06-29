@@ -22,7 +22,7 @@ jax.req({ endpoint: 'v1/something.json',			// endpoint path
 	  success: function(response) {				// success callback
 		// success callback
 	  },
-	  time_out: function(response) {			// [time_out callback]
+	  time_out: function(response) {			// [time out callback]
 		// time out callback
 	  },
 	  error: function(response) {				// [error callback]
@@ -58,6 +58,7 @@ h1. Advanced Usage (with Failover)
 
 *Setup Resource*
 To 'enable' failover, initialize skinnyJAX with multiple target hosts (redundant servers)
+Note: 'hosts' is plural for this setup
 
 <pre>
 var jax = new skinnyJAX({ hosts: ['http://srv1.domain.com/', 'http://srv2.domain.com/', 'http://srv3.domain.com/'],
@@ -68,15 +69,15 @@ var jax = new skinnyJAX({ hosts: ['http://srv1.domain.com/', 'http://srv2.domain
 *Submit A Request*
 
 <pre>
-jax.req({ endpoint: 'v1/something.json',			// endpoint path
+jax.req({ endpoint: 'v1/something',				// endpoint path
 	  method: 'get',					// http method
 	  params: { param1: value1, param2: value2 },		// [optional] request parameters
-	  timeout: 1500,					// [optional] timeout should be boolean or a time in ms
+	  timeout: 1500,					// [optional] timeout can be boolean or a time in ms
 	  retries: 2,						// [optional] retries can be boolean or a number
 	  success: function(response) {				// success callback
 		// success callback
 	  },
-	  time_out: function(response) {			// [time_out callback]
+	  time_out: function(response) {			// [time out callback]
 		// time out callback
 	  },
 	  error: function(response) {				// [error callback]
@@ -97,7 +98,7 @@ This was written for a specific application and hasn't been thoroughly tested ou
 
 Also be aware that...
 it assumes all requests are JSON responses and parses them as such. Other responses will probably cause errors.
-
+only requests that respond 200 trigger the success callback
 
 h1. TODO
 
@@ -107,4 +108,3 @@ h1. TODO
 - should not assume response is JSON
 - host sleep should be configurable
 - random failover should be configurable
-- only 200's are considered successful
