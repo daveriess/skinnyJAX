@@ -7,13 +7,14 @@ I wrote skinnyJAX while working on "Tapl.io":http://tapl.io - take it for a spin
 h1. Simple Usage
 
 *Setup Resource*
-Initialize skinnyJAX with target host
+Initialize skinnyJAX with target host. If your app call to several different hosts you should init a unique skinnyJAX object for each one.
 
 <pre>
 var jax = new skinnyJAX('http://domain.com/');
 </pre>
 
 *Submit A Request*
+A complete listing of request options and callbacks is the Advanced Usage section below.
 
 <pre>
 jax.req({ endpoint: 'v1/something.json',			// endpoint path
@@ -23,8 +24,6 @@ jax.req({ endpoint: 'v1/something.json',			// endpoint path
 	  }
 	});
 </pre>
-
-Look at Advanced usage for a complete listing of request options and callbacks
 
 *response object attributes:*
 this object is the argument that is passed to the request callbacks
@@ -62,6 +61,7 @@ var jax = new skinnyJAX({ hosts: ['http://srv1.domain.com/', 'http://srv2.domain
 </pre>
 
 *Submit A Request*
+All of the request config options:
 
 <pre>
 jax.req({ endpoint: 'v1/something',				// endpoint path
@@ -72,10 +72,10 @@ jax.req({ endpoint: 'v1/something',				// endpoint path
 	  success: function(response) {				// success callback
 		// success callback
 	  },
-	  time_out: function(response) {			// [time out callback]
+	  time_out: function(response) {			// [optional] time out callback
 		// time out callback
 	  },
-	  error: function(response) {				// [error callback]
+	  error: function(response) {				// [optional] error callback
 		// error callback
 	  }
 	});
@@ -83,7 +83,7 @@ jax.req({ endpoint: 'v1/something',				// endpoint path
 
 Now if a request times out or errors out skinnyJAX will disable the offending host for [host_sleep] milliseconds and will failover to a new one. The default value for host_sleep is 15000. The new host will be randomly selected from the remaining pool of active hosts. Some things to note:
 
-1) request will be retried as configured before failover
+1) request will be retried as configured (retries option) before a failover is triggered
 2) hosts will be re-enabled 15 seconds (default host_sleep) after causing a failover
 3) if all hosts in pool are disabled, request will exit false
 
@@ -92,11 +92,11 @@ h1. Warnings
 This was written for a specific application and hasn't been thoroughly tested outside of its intended use. If you find a bug please let me know and I'll check it out. If this is useful at all I'm happy to maintain it and make it better but at this point it's immature.
 
 Also be aware that...
-it assumes all requests are JSON responses and parses them as such. Other responses will probably cause errors.
+it currently assumes all requests have JSON responses and parses them as such. Other responses will probably cause errors.
 only requests that respond 200 trigger the success callback
 
 h1. TODO
 
-- obvious headers should be applied
 - compatibility with non-JSON requests (interpret MIME types)
+- obvious headers should be applied
 - configurable random/sequential failover
