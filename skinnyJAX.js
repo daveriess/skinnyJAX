@@ -6,22 +6,22 @@
 
 (function() { 
 	skinnyJAX = function(args) {
-		// resource sleep is the length of time (ms) a resource is inactive after a failover
-		this.default_timeout = 1500, this.default_retry_max = 2, this.live_resource = null, this.resource_pool = null, this.resource_sleep = 15000, this.headers = null;
+		// host sleep is the length of time (ms) a host is inactive after a failover
+		this.default_timeout = 1500, this.default_retry_max = 2, this.live_host = null, this.host_pool = null, this.host_sleep = 15000, this.headers = null;
 
 		// skinnyJAX initialization
 		this.init = function(args) {
 			// ensure hosts are present
-			if (!(args.resources instanceof Array)) return false;
+			if (!(args.hosts instanceof Array)) return false;
 	
-			// initialize resource pool
-			this.resource_pool = [];
-			for (var i = 0; i < args.resources.length; i++) {
-				this.resource_pool.push( { name: args.resources[i], live: true } );	
+			// initialize host pool
+			this.host_pool = [];
+			for (var i = 0; i < args.hosts.length; i++) {
+				this.host_pool.push( { name: args.hosts[i], live: true } );	
 			}
 	
-			// init a resource from pool
-			this.promote_resource();
+			// init a host from pool
+			this.promote_host();
 
 			// copy in any headers
 			if (args.headers instanceof Object) this.headers = args.headers;
@@ -30,8 +30,8 @@
 		// request function
 		this.req = function(args) {
 			var self = this;
-			// exit if no live resource is available
-			if (this.live_resource == null) return false;
+			// exit if no live host is available
+			if (this.live_host == null) return false;
 
 			// instantiate skinnyREQ object
 			var xhr = new skinnyREQ(args.attempt);
@@ -56,39 +56,39 @@
 			xhr.send();
 		}
 
-		// build uri (live resource + endpoint + params)
+		// build uri (live host + endpoint + params)
 		this.buildURI = function(endpoint, params) {
 			var p = [];
 			for (var param in params) {
 				p.push( encodeURI(param+'='+params[param]) )
 			}
-			return this.live_resource+endpoint+'?'+p.join('&');
+			return this.live_host+endpoint+'?'+p.join('&');
 		}
 
-		// select a new resource from pool (called during init and after a failure)
-		this.promote_resource = function() {
+		// select a new host from pool (called during init and after a failure)
+		this.promote_host = function() {
 			var rs_pool = [];
-			for (var n=0; n<this.resource_pool.length; n++) {
-				// disable current resource (this fn is called on failover)
-				if (this.resource_pool[n].name == this.live_resource) this.disable_resource(n);
-				// collect live resources into an array
-				else if (this.resource_pool[n].live == true) rs_pool.push(this.resource_pool[n].name);
+			for (var n=0; n<this.host_pool.length; n++) {
+				// disable current host (this fn is called on failover)
+				if (this.host_pool[n].name == this.live_host) this.disable_host(n);
+				// collect live hosts into an array
+				else if (this.host_pool[n].live == true) rs_pool.push(this.host_pool[n].name);
 			}
-			// select a new 'live' resource at random
-			return this.live_resource = rs_pool.length > 0 ? rs_pool[Math.floor(Math.random()*rs_pool.length)] : null;
+			// select a new 'live' host at random
+			return this.live_host = rs_pool.length > 0 ? rs_pool[Math.floor(Math.random()*rs_pool.length)] : null;
 		}
 	
-		// enable resource after resource_sleep has expired (hopefully we've already found a new resource that is responding)
-		this.enable_resource = function(index) {
-			this.resource_pool[index].live = true;
-			if (this.live_resource == null) this.promote_resource();
+		// enable host after host_sleep has expired (hopefully we've already found a new host that is responding)
+		this.enable_host = function(index) {
+			this.host_pool[index].live = true;
+			if (this.live_host == null) this.promote_host();
 		}
 	
-		// disable resource after a failure (resource will be inactive for [resource_sleep] milliseconds)
-		this.disable_resource = function(index) {
+		// disable host after a failure (host will be inactive for [host_sleep] milliseconds)
+		this.disable_host = function(index) {
 			var self = this;
-			this.resource_pool[index].live = false;
-			setTimeout(function() { self.enable_resource(index) }, self.resource_sleep);
+			this.host_pool[index].live = false;
+			setTimeout(function() { self.enable_host(index) }, self.host_sleep);
 		}
 
 		// error callback
@@ -108,16 +108,16 @@
 	
 		// retry request
 		this.retry = function(attempt, args) {
-			console.info('resource unavailable - retrying: '+this.live_resource+' - '+attempt)
+			console.info('host unavailable - retrying: '+this.live_host+' - '+attempt)
 			args.attempt = attempt;
 			this.req(args);
 		}
 	
 		// failover to new resoruce
 		this.failover = function(response, args) {
-			// promote resource and retry
-			if (this.promote_resource() != null) this.retry(1, args);
-			// if there are no resources to promote, pass to appropriate callback
+			// promote host and retry
+			if (this.promote_host() != null) this.retry(1, args);
+			// if there are no hosts to promote, pass to appropriate callback
 			else {
 				if (typeof(args.time_out) == 'function' && response.timed_out == true) args.time_out(response);
 				else if (typeof(args.error) == 'function') args.error(response);
