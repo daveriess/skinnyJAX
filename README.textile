@@ -1,0 +1,83 @@
+h1. skinnyJAX - an XHR wrapper
+
+Need to send some AJAX requests without the help of a framework? Have no fear, skinnyJAX can help you out. In addition to the normal stuff, skinnyJAX requests can be configured with a pool of hosts for failover. Sweet!
+
+I wrote skinnyJAX while working on "Tapl.io":http://tapl.io - take it for a spin to see it in action! Let "me":http://daveriess.me know if it's useful =)
+
+h1. Usage
+
+*Setup A Resource*
+initialize hosts and any headers
+
+<pre>
+var jax = new skinnyJAX({ hosts: ['http://domain.com/'],
+                      	  headers: { 'Content-Type': 'application/json'}
+                    	});
+</pre>
+
+*Submit A Request*
+
+<pre>
+jax.req({ endpoint: 'v1/something',
+	  method: 'get',					// http method
+	  params: { param1: value1, param2: value2 },		// [optional] request parameters
+	  timeout: 1500,					// [optional] timeout should be boolean or a time in ms
+	  retries: 2,						// [optional] retries can be boolean or a number
+	  success: function(response) {				// [optional] success callback
+		// success callback
+	  },
+	  time_out: function(response) {			// [optional] success callback
+		// success callback
+	  },
+	  error: function(response) {				// [optional] error callback
+		// success callback
+	  }
+	});
+</pre>
+
+*response object attributes:*
+
+<pre>
+response = {
+	uri: 'http://domain.com/v1/something?param1...',	// complete request URI
+	method: 'get',						// request method
+	time: 232,						// response time
+	http_code: 200,						// http status code
+	timed_out: false,					// boolean
+	data: {}						// if request is successful
+}
+</pre>
+
+h1. Failover
+
+To enable failover just add some additional hosts to your resource:
+
+<pre>
+var jax = new skinnyJAX({ hosts: ['http://srv1.domain.com/', 'http://srv2.domain.com/', 'http://srv3.domain.com/'],
+                      	  headers: { 'Content-Type': 'application/json'}
+                    	});
+</pre>
+
+Now if a request times out or errors out (http_code !200) skinnyJAX will temporarily disable the offending host and will failover to a new one. The new host will be randomly selected from the remaining pool of active hosts. Some things to note:
+
+1) request will be retried as configured before failover
+2) hosts will be re-enabled 15 seconds after causing a failover
+3) if all hosts in pool are disabled, request will exit false
+
+h1. Warnings
+
+This was written for a specific application and hasn't been thoroughly tested outside of its intended use. If you find a bug please let me know (make an Issue) and I'll check it out. If this is useful at all I'm happy to maintain it and make it better but at this point it's immature.
+
+Also be aware that...
+it assumes all requests are JSON responses and parses them as such. Other responses will probably cause errors.
+
+
+h1. TODO
+
+- simple init for single host config
+- obvious headers should be applied
+- assume GET method
+- should not assume response is JSON
+- host sleep should be configurable
+- random failover should be configurable
+- only 200's are considered successful
