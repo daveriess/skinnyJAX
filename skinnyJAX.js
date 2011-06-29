@@ -1,5 +1,5 @@
 /* 
- * SkinnyJAX - an XHR wrapper with failover
+ * skinnyJAX - an XHR wrapper with failover
  * By Dave Riess http://daveriess.me
  * MIT Licensed
  */
@@ -11,8 +11,9 @@
 
 		// skinnyJAX initialization
 		this.init = function(args) {
-			// ensure hosts are present
-			if (!(args.hosts instanceof Array)) return false;
+			// sanity check hosts init
+			if (typeof(args) === 'string' || (typeof(args) === 'object' && typeof(args.host) === 'string')) args = { hosts: typeof(args) === 'string' ? [args] : [args.host] };
+			if (!(args.hosts instanceof Array) || args.hosts.length == 0) return false;
 	
 			// initialize host pool
 			this.host_pool = [];

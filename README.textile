@@ -4,32 +4,28 @@ Need to send some AJAX requests without the help of a framework? Have no fear, s
 
 I wrote skinnyJAX while working on "Tapl.io":http://tapl.io - take it for a spin to see it in action! Let "me":http://daveriess.me know if it's useful =)
 
-h1. Usage
+h1. Simple Usage
 
-*Setup A Resource*
-initialize hosts and any headers
+*Setup Resource*
+Initialize skinnyJAX with target host
 
 <pre>
-var jax = new skinnyJAX({ hosts: ['http://domain.com/'],
-                      	  headers: { 'Content-Type': 'application/json'}
-                    	});
+var jax = new skinnyJAX('http://domain.com/');
 </pre>
 
 *Submit A Request*
 
 <pre>
-jax.req({ endpoint: 'v1/something',				// endpoint path
+jax.req({ endpoint: 'v1/something.json',			// endpoint path
 	  method: 'get',					// http method
 	  params: { param1: value1, param2: value2 },		// [optional] request parameters
-	  timeout: 1500,					// [optional] timeout should be boolean or a time in ms
-	  retries: 2,						// [optional] retries can be boolean or a number
 	  success: function(response) {				// success callback
 		// success callback
 	  },
-	  time_out: function(response) {			// [optional] time_out callback
+	  time_out: function(response) {			// [time_out callback]
 		// time out callback
 	  },
-	  error: function(response) {				// [optional] error callback
+	  error: function(response) {				// [error callback]
 		// error callback
 	  }
 	});
@@ -49,14 +45,44 @@ response = {
 }
 </pre>
 
-h1. Failover
+*Alternative Resource Init*
+specify any custom headers
 
-To enable failover just add some additional hosts to your resource:
+<pre>
+var jax = new skinnyJAX({ host: 'http://domain.com/',
+			  headers: { 'Content-Type': 'application/json'}
+			});
+</pre>
+
+h1. Advanced Usage (with Failover)
+
+*Setup Resource*
+To 'enable' failover, initialize skinnyJAX with multiple target hosts (redundant servers)
 
 <pre>
 var jax = new skinnyJAX({ hosts: ['http://srv1.domain.com/', 'http://srv2.domain.com/', 'http://srv3.domain.com/'],
-                      	  headers: { 'Content-Type': 'application/json'}
-                    	});
+			  headers: { 'Content-Type': 'application/json'}
+			});
+</pre>
+
+*Submit A Request*
+
+<pre>
+jax.req({ endpoint: 'v1/something.json',			// endpoint path
+	  method: 'get',					// http method
+	  params: { param1: value1, param2: value2 },		// [optional] request parameters
+	  timeout: 1500,					// [optional] timeout should be boolean or a time in ms
+	  retries: 2,						// [optional] retries can be boolean or a number
+	  success: function(response) {				// success callback
+		// success callback
+	  },
+	  time_out: function(response) {			// [time_out callback]
+		// time out callback
+	  },
+	  error: function(response) {				// [error callback]
+		// error callback
+	  }
+	});
 </pre>
 
 Now if a request times out or errors out (http_code !200) skinnyJAX will temporarily disable the offending host and will failover to a new one. The new host will be randomly selected from the remaining pool of active hosts. Some things to note:
@@ -67,7 +93,7 @@ Now if a request times out or errors out (http_code !200) skinnyJAX will tempora
 
 h1. Warnings
 
-This was written for a specific application and hasn't been thoroughly tested outside of its intended use. If you find a bug please let me know (make an Issue) and I'll check it out. If this is useful at all I'm happy to maintain it and make it better but at this point it's immature.
+This was written for a specific application and hasn't been thoroughly tested outside of its intended use. If you find a bug please let me know and I'll check it out. If this is useful at all I'm happy to maintain it and make it better but at this point it's immature.
 
 Also be aware that...
 it assumes all requests are JSON responses and parses them as such. Other responses will probably cause errors.
