@@ -27,6 +27,7 @@
 				this.host_sleep = typeof(args.host_sleep) === 'number' ? args.host_sleep : 15000;
 				this.default_timeout = typeof(args.default_timeout) === 'number' ? args.default_timeout : 1500;
 				this.default_retry_max = typeof(args.default_retry_max) === 'number' ? args.default_retry_max : 2;
+				this.default_params = typeof(args.default_params) === 'object' ? args.default_params : {};
 			}
 		}
 
@@ -62,9 +63,8 @@
 		// build uri (live host + endpoint + params)
 		this.buildURI = function(endpoint, params) {
 			var p = [];
-			for (var param in params) {
-				p.push( encodeURI(param+'='+params[param]) )
-			}
+			for (var param in params) { p.push( encodeURI(param+'='+params[param]) ) }
+			for (var dparam in this.default_params) { p.push( encodeURI(dparam+'='+this.default_params[dparam]) ) }
 			return this.live_host+endpoint+'?'+p.join('&');
 		}
 
