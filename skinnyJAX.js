@@ -63,8 +63,8 @@
 		// build uri (live host + endpoint + params)
 		this.buildURI = function(endpoint, params) {
 			var p = [];
-			for (var param in params) { p.push( encodeURI(param+'='+params[param]) ) }
-			for (var dparam in this.default_params) { p.push( encodeURI(dparam+'='+this.default_params[dparam]) ) }
+			for (var param in params) { p.push( param+'='+encodeURIComponent(params[param]) ) }
+			for (var dparam in this.default_params) { p.push( dparam+'='+encodeURIComponent(this.default_params[dparam]) ) }
 			return this.live_host+endpoint+'?'+p.join('&');
 		}
 
